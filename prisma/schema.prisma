@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  price       Decimal   @db.Decimal(10, 2)
+  description String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  ads         Ad[]      @relation("ProductToAd")
+}
+
+model Ad {
+  id         Int      @id @default(autoincrement())
+  product_id Int
+  title      String
+  content    String
+  image_url  String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product    Product  @relation("ProductToAd", fields: [product_id], references: [id])
+}
+
+model Set {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  set_items   SetItem[]
+}
+
+model SetItem {
+  id        Int      @id @default(autoincrement())
+  set_id    Int
+  item_type String
+  item_id   Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  set       Set      @relation(fields: [set_id], references: [id])
+}
