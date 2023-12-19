@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.post('/api/v1/ads', createAd);
-router.get('/api/v1/ads', getAllAds);
-router.get('/api/v1/ads/:adId', getAdById);
-router.put('/api/v1/ads/:adId', updateAdById);
-router.delete('/api/v1/ads/:adId', deleteAdById);
+router.post('/', createAd);
+router.get('/', getAllAds);
+router.get('/:adId', getAdById);
+router.put('/:adId', updateAdById);
+router.delete('/:adId', deleteAdById);
 
 export default router;

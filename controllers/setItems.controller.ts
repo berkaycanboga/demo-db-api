@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/db';
+import { handlePagination } from '../middlewares/pagination';
 
 const createSetItem = async (
   req: Request,
@@ -29,12 +28,19 @@ const getAllSetItems = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    const setItems = await prisma.setItem.findMany();
-    res.json(setItems);
-  } catch (error) {
-    next(error);
-  }
+  await handlePagination(req, res, next, async (options) => {
+    const { cursor, limit, orderByField, orderByDirection } = options;
+
+    const setItems = await prisma.setItem.findMany({
+      cursor: cursor ? { id: Number(cursor) } : undefined,
+      take: limit,
+      orderBy: {
+        [orderByField]: orderByDirection,
+      },
+    });
+
+    return setItems;
+  });
 };
 
 const getSetItemById = async (

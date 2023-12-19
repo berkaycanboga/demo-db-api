@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/db';
+import { handlePagination } from '../middlewares/pagination';
 
 const createAd = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -21,12 +20,19 @@ const createAd = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getAllAds = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const ads = await prisma.ad.findMany();
-    res.json(ads);
-  } catch (error) {
-    next(error);
-  }
+  await handlePagination(req, res, next, async (options) => {
+    const { cursor, limit, orderByField, orderByDirection } = options;
+
+    const ads = await prisma.ad.findMany({
+      cursor: cursor ? { id: Number(cursor) } : undefined,
+      take: limit,
+      orderBy: {
+        [orderByField]: orderByDirection,
+      },
+    });
+
+    return ads;
+  });
 };
 
 const getAdById = async (req: Request, res: Response, next: NextFunction) => {

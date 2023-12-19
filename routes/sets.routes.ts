@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.post('/api/v1/sets', createSet);
-router.get('/api/v1/sets', getAllSets);
-router.get('/api/v1/sets/:setId', getSetById);
-router.put('/api/v1/sets/:setId', updateSetById);
-router.delete('/api/v1/sets/:setId', deleteSetById);
+router.post('/', createSet);
+router.get('/', getAllSets);
+router.get('/:setId', getSetById);
+router.put('/:setId', updateSetById);
+router.delete('/:setId', deleteSetById);
 
 export default router;

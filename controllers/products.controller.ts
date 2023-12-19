@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/db';
+import { handlePagination } from '../middlewares/pagination';
 
 const createProduct = async (
   req: Request,
@@ -29,12 +28,19 @@ const getAllProducts = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    const products = await prisma.product.findMany();
-    res.json(products);
-  } catch (error) {
-    next(error);
-  }
+  await handlePagination(req, res, next, async (options) => {
+    const { cursor, limit, orderByField, orderByDirection } = options;
+
+    const products = await prisma.product.findMany({
+      cursor: cursor ? { id: Number(cursor) } : undefined,
+      take: limit,
+      orderBy: {
+        [orderByField]: orderByDirection,
+      },
+    });
+
+    return products;
+  });
 };
 
 const getProductById = async (
@@ -103,11 +109,10 @@ const deleteProductById = async (
       throw new Error('Invalid or missing Product ID for deleting a product');
     }
 
-    const result = await prisma.product.delete({
+    await prisma.product.delete({
       where: { id: parseInt(productId) },
     });
 
-    console.log('Deletion Result:', result);
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Deletion Error:', error);
