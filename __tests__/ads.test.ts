@@ -9,22 +9,13 @@ describe('Ad API Tests', () => {
   let existingProductId: number;
 
   beforeAll(async () => {
-    await prisma.product.createMany({
-      data: [
-        {
-          name: 'Existing Product 1',
-          price: 29.99,
-          description: 'This is an existing product.',
-        },
-        {
-          name: 'Existing Product 2',
-          price: 39.99,
-          description: 'This is another existing product.',
-        },
-      ],
+    const existingProduct = await prisma.product.create({
+      data: {
+        name: 'Existing Product',
+        price: 29.99,
+        description: 'This is an existing product.',
+      },
     });
-
-    const existingProduct = await prisma.product.findFirst();
 
     if (!existingProduct) {
       throw new Error('No existing product found for testing.');
@@ -40,14 +31,6 @@ describe('Ad API Tests', () => {
     });
 
     existingAdId = newAdResponse.body.id;
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
-  beforeEach(async () => {
-    await prisma.ad.deleteMany({});
   });
 
   test('POST /api/v1/ads - Create Ad (Success)', async () => {
@@ -175,5 +158,21 @@ describe('Ad API Tests', () => {
     );
 
     expect(response.status).toBe(500);
+  });
+
+  afterAll(async () => {
+    await prisma.ad.deleteMany({
+      where: {
+        product_id: existingProductId,
+      },
+    });
+
+    await prisma.product.deleteMany({
+      where: {
+        id: existingProductId,
+      },
+    });
+
+    await prisma.$disconnect();
   });
 });

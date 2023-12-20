@@ -1,8 +1,6 @@
 import request from 'supertest';
 import app from '../app';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/db';
 
 describe('Set Item API Tests', () => {
   let existingSetItemId: number;
@@ -36,14 +34,6 @@ describe('Set Item API Tests', () => {
       });
 
     existingSetItemId = newSetItemResponse.body.id;
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
-  beforeEach(async () => {
-    await prisma.setItem.deleteMany({});
   });
 
   test('POST /api/v1/set_items - Create Set Item (Success)', async () => {
@@ -171,5 +161,27 @@ describe('Set Item API Tests', () => {
     );
 
     expect(response.status).toBe(500);
+  });
+
+  afterAll(async () => {
+    await prisma.setItem.deleteMany({
+      where: {
+        set_id: existingSetId,
+      },
+    });
+
+    await prisma.set.delete({
+      where: {
+        id: existingSetId,
+      },
+    });
+
+    await prisma.product.deleteMany({
+      where: {
+        id: existingProductId,
+      },
+    });
+
+    await prisma.$disconnect();
   });
 });

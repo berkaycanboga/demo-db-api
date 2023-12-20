@@ -16,14 +16,6 @@ describe('Set API Tests', () => {
     existingSetId = newSetResponse.body.id;
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
-  beforeEach(async () => {
-    await prisma.set.deleteMany({});
-  });
-
   test('POST /api/v1/sets - Create Set (Success)', async () => {
     const response = await request(app).post('/api/v1/sets').send({
       name: 'New Test Set',
@@ -32,6 +24,9 @@ describe('Set API Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('name', 'New Test Set');
+
+    const deleteAfterTest = response.body.id;
+    await request(app).delete(`/api/v1/sets/${deleteAfterTest}`);
   });
 
   test('POST /api/v1/sets - Invalid Set Creation (Missing Fields)', async () => {
@@ -137,5 +132,15 @@ describe('Set API Tests', () => {
     );
 
     expect(response.status).toBe(500);
+  });
+
+  afterAll(async () => {
+    await prisma.set.delete({
+      where: {
+        id: existingSetId,
+      },
+    });
+
+    await prisma.$disconnect();
   });
 });

@@ -9,18 +9,11 @@ describe('Product API Tests', () => {
 
   beforeAll(async () => {
     await prisma.product.createMany({
-      data: [
-        {
-          name: 'Existing Product 1',
-          price: 29.99,
-          description: 'This is an existing product.',
-        },
-        {
-          name: 'Existing Product 2',
-          price: 39.99,
-          description: 'This is another existing product.',
-        },
-      ],
+      data: {
+        name: 'Existing Product 1',
+        price: 29.99,
+        description: 'This is an existing product.',
+      },
     });
 
     const existingProduct = await prisma.product.findFirst();
@@ -32,14 +25,6 @@ describe('Product API Tests', () => {
     existingProductId = existingProduct.id;
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
-  beforeEach(async () => {
-    await prisma.product.deleteMany({});
-  });
-
   test('POST /api/v1/products - Create Product (Success)', async () => {
     const response = await request(app).post('/api/v1/products').send({
       name: 'Test Product',
@@ -49,6 +34,10 @@ describe('Product API Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('name', 'Test Product');
+
+    const deleteAfterTest = response.body.id;
+
+    await request(app).delete(`/api/v1/products/${deleteAfterTest}`);
   });
 
   test('POST /api/v1/products - Invalid Product Creation (Missing Fields)', async () => {
@@ -173,5 +162,15 @@ describe('Product API Tests', () => {
     );
 
     expect(response.status).toBe(500);
+  });
+
+  afterAll(async () => {
+    await prisma.product.delete({
+      where: {
+        id: existingProductId,
+      },
+    });
+
+    await prisma.$disconnect();
   });
 });
